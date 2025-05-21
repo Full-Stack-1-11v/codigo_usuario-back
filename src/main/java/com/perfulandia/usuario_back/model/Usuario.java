@@ -6,13 +6,12 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.perfulandia.usuario_back.model.Rol;
-
 @Entity
 @Table(name = "usuarios")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Usuario {
 
     @Id

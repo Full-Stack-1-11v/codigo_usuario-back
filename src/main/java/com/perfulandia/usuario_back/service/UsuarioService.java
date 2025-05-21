@@ -1,15 +1,16 @@
 package com.perfulandia.usuario_back.service;
 
-import java.util.*;
+import com.perfulandia.usuario_back.model.Rol;
+import com.perfulandia.usuario_back.model.Usuario;
+import com.perfulandia.usuario_back.repository.RolRepository;
+import com.perfulandia.usuario_back.repository.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.perfulandia.usuario_back.model.Usuario;
-import com.perfulandia.usuario_back.model.Rol;
-import com.perfulandia.usuario_back.repository.UsuarioRepository;
-import com.perfulandia.usuario_back.repository.RolRepository;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioService {
@@ -34,6 +35,9 @@ public class UsuarioService {
     public Usuario saveUsuario(Usuario usuario) {
         if (usuario.getRut() != null && usuarioRepo.findByRut(usuario.getRut()).isPresent()) {
             throw new RuntimeException("El usuario con ese RUT ya existe");
+        }
+        if (usuario.getCorreo() != null && usuarioRepo.findByCorreo(usuario.getCorreo()).isPresent()) {
+            throw new RuntimeException("El usuario con ese correo ya existe");
         }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         usuario.setActivo(true);
@@ -88,4 +92,3 @@ public class UsuarioService {
         return usuarioRepo.save(usuario);
     }
 }
-

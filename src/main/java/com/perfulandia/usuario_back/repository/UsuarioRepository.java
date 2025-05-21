@@ -1,9 +1,8 @@
 package com.perfulandia.usuario_back.repository;
 
+import com.perfulandia.usuario_back.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import com.perfulandia.usuario_back.model.Usuario;
 
 import java.util.Optional;
 

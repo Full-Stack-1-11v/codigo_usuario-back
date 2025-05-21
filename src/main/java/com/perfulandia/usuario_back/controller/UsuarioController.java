@@ -1,14 +1,15 @@
 package com.perfulandia.usuario_back.controller;
 
-import java.util.List;
+import com.perfulandia.usuario_back.model.Usuario;
+import com.perfulandia.usuario_back.model.Rol;
+import com.perfulandia.usuario_back.service.UsuarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.perfulandia.usuario_back.model.Usuario;
-import com.perfulandia.usuario_back.model.Rol;
-import com.perfulandia.usuario_back.service.UsuarioService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -19,13 +20,16 @@ public class UsuarioController {
 
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
-        return ResponseEntity.ok(usuarioService.getAllUsuarios());
+        List<Usuario> usuarios = usuarioService.getAllUsuarios();
+        return ResponseEntity.ok(usuarios);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
         Usuario usuario = usuarioService.getUsuarioById(id);
-        if (usuario == null) return ResponseEntity.notFound().build();
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        }
         return ResponseEntity.ok(usuario);
     }
 
@@ -35,27 +39,34 @@ public class UsuarioController {
             Usuario nuevo = usuarioService.saveUsuario(usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
         Usuario actualizado = usuarioService.updateUsuario(id, usuario);
-        if (actualizado == null) return ResponseEntity.notFound().build();
+        if (actualizado == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        }
         return ResponseEntity.ok(actualizado);
     }
 
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<Usuario> desactivarUsuario(@PathVariable Long id) {
         Usuario desactivado = usuarioService.desactivarUsuario(id);
-        if (desactivado == null) return ResponseEntity.notFound().build();
+        if (desactivado == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        }
         return ResponseEntity.ok(desactivado);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
-        if (usuarioService.getUsuarioById(id) == null) return ResponseEntity.notFound().build();
+        Usuario usuario = usuarioService.getUsuarioById(id);
+        if (usuario == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        }
         usuarioService.deleteUsuario(id);
         return ResponseEntity.noContent().build();
     }
@@ -63,7 +74,9 @@ public class UsuarioController {
     @PostMapping("/{id}/roles")
     public ResponseEntity<Usuario> asignarRol(@PathVariable Long id, @RequestBody Rol rol) {
         Usuario usuarioConRol = usuarioService.asignarRol(id, rol);
-        if (usuarioConRol == null) return ResponseEntity.notFound().build();
+        if (usuarioConRol == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario o Rol no encontrado");
+        }
         return ResponseEntity.ok(usuarioConRol);
     }
 }
