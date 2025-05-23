@@ -12,7 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/usuarios")
+@RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     @Autowired
@@ -53,7 +53,7 @@ public class UsuarioController {
     }
 
   
-    @PostMapping
+    @PostMapping("/crear")
     public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario) {
         try {
             Usuario nuevo = usuarioService.saveUsuario(usuario);

@@ -2,6 +2,7 @@ package com.perfulandia.usuario_back.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +34,7 @@ public class Usuario {
     @Column(nullable = false)
     private String direccion;
 
+    @JsonIgnore
     @Column(name = "contrasena", nullable = false)
     private String password;
 
@@ -46,4 +48,7 @@ public class Usuario {
             inverseJoinColumns = @JoinColumn(name = "rol_id")
     )
     private Set<Rol> roles = new HashSet<>();
+
+    @Transient
+    private String rawPassword;
 }

@@ -39,7 +39,13 @@ public class UsuarioService {
         if (usuario.getCorreo() != null && usuarioRepo.findByCorreo(usuario.getCorreo()).isPresent()) {
             throw new RuntimeException("El usuario con ese correo ya existe");
         }
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
+        if (usuario.getRawPassword() == null || usuario.getRawPassword().isBlank()) {
+            throw new RuntimeException("rawPassword no puede ser nulo o vacío");
+        }
+
+        // Codificamos la contraseña
+        usuario.setPassword(passwordEncoder.encode(usuario.getRawPassword()));
         usuario.setActivo(true);
         return usuarioRepo.save(usuario);
     }
@@ -55,8 +61,8 @@ public class UsuarioService {
         existente.setCorreo(usuario.getCorreo() != null ? usuario.getCorreo() : existente.getCorreo());
         existente.setDireccion(usuario.getDireccion() != null ? usuario.getDireccion() : existente.getDireccion());
 
-        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
-            existente.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        if (usuario.getRawPassword() != null && !usuario.getRawPassword().isBlank()) {
+            existente.setPassword(passwordEncoder.encode(usuario.getRawPassword()));
         }
 
         return usuarioRepo.save(existente);
@@ -92,7 +98,6 @@ public class UsuarioService {
         return usuarioRepo.save(usuario);
     }
 
-    // Método nuevo: traer usuarios desactivados
     public List<Usuario> getUsuariosDesactivados() {
         return usuarioRepo.findUsuariosDesactivados();
     }
