@@ -18,12 +18,31 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+   
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
         List<Usuario> usuarios = usuarioService.getAllUsuarios();
         return ResponseEntity.ok(usuarios);
     }
 
+   
+    @GetMapping("/desactivados")
+    public ResponseEntity<List<Usuario>> listarUsuariosDesactivados() {
+        List<Usuario> usuariosDesactivados = usuarioService.getUsuariosDesactivados();
+        return ResponseEntity.ok(usuariosDesactivados);
+    }
+
+   
+    @GetMapping("/activos")
+    public ResponseEntity<List<Usuario>> listarUsuariosActivos() {
+        List<Usuario> usuariosActivos = usuarioService.getAllUsuarios()
+                .stream()
+                .filter(Usuario::isActivo)
+                .toList();
+        return ResponseEntity.ok(usuariosActivos);
+    }
+
+   
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
         Usuario usuario = usuarioService.getUsuarioById(id);
@@ -33,6 +52,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
+  
     @PostMapping
     public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario) {
         try {
@@ -43,6 +63,7 @@ public class UsuarioController {
         }
     }
 
+   
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
         Usuario actualizado = usuarioService.updateUsuario(id, usuario);
@@ -52,6 +73,7 @@ public class UsuarioController {
         return ResponseEntity.ok(actualizado);
     }
 
+    
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<Usuario> desactivarUsuario(@PathVariable Long id) {
         Usuario desactivado = usuarioService.desactivarUsuario(id);
@@ -61,6 +83,7 @@ public class UsuarioController {
         return ResponseEntity.ok(desactivado);
     }
 
+  
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         Usuario usuario = usuarioService.getUsuarioById(id);
@@ -71,6 +94,7 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+  
     @PostMapping("/{id}/roles")
     public ResponseEntity<Usuario> asignarRol(@PathVariable Long id, @RequestBody Rol rol) {
         Usuario usuarioConRol = usuarioService.asignarRol(id, rol);

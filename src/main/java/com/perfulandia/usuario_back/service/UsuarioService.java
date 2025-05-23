@@ -91,4 +91,9 @@ public class UsuarioService {
         usuario.getRoles().add(rolEncontrado);
         return usuarioRepo.save(usuario);
     }
+
+    // Método nuevo: traer usuarios desactivados
+    public List<Usuario> getUsuariosDesactivados() {
+        return usuarioRepo.findUsuariosDesactivados();
+    }
 }
