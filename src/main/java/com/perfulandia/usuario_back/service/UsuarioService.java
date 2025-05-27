@@ -1,5 +1,9 @@
 package com.perfulandia.usuario_back.service;
 
+import com.perfulandia.usuario_back.dto.PedidoDTO;
+import com.perfulandia.usuario_back.dto.VentaDTO;
+import com.perfulandia.usuario_back.feign.PedidoClient;
+import com.perfulandia.usuario_back.feign.VentaClient;
 import com.perfulandia.usuario_back.model.Rol;
 import com.perfulandia.usuario_back.model.Usuario;
 import com.perfulandia.usuario_back.repository.RolRepository;
@@ -24,6 +28,12 @@ public class UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private PedidoClient pedidoClient;
+
+    @Autowired
+    private VentaClient ventaClient;
+
     public List<Usuario> getAllUsuarios() {
         return usuarioRepo.findAll();
     }
@@ -44,7 +54,6 @@ public class UsuarioService {
             throw new RuntimeException("rawPassword no puede ser nulo o vacío");
         }
 
-        // Codificamos la contraseña
         usuario.setPassword(passwordEncoder.encode(usuario.getRawPassword()));
         usuario.setActivo(true);
         return usuarioRepo.save(usuario);
@@ -87,12 +96,7 @@ public class UsuarioService {
         Usuario usuario = optUsuario.get();
 
         Optional<Rol> optRol = rolRepo.findByNombre(rol.getNombre());
-        Rol rolEncontrado;
-        if (optRol.isPresent()) {
-            rolEncontrado = optRol.get();
-        } else {
-            rolEncontrado = rolRepo.save(rol);
-        }
+        Rol rolEncontrado = optRol.orElseGet(() -> rolRepo.save(rol));
 
         usuario.getRoles().add(rolEncontrado);
         return usuarioRepo.save(usuario);
@@ -100,5 +104,14 @@ public class UsuarioService {
 
     public List<Usuario> getUsuariosDesactivados() {
         return usuarioRepo.findUsuariosDesactivados();
+    }
+
+    // 🔁 Métodos nuevos para consumo vía Feign
+    public List<PedidoDTO> getPedidosUsuario(Long usuarioId) {
+        return pedidoClient.getPedidosByUsuario(usuarioId);
+    }
+
+    public List<VentaDTO> getVentasUsuario(Long usuarioId) {
+        return ventaClient.getVentasByUsuario(usuarioId);
     }
 }

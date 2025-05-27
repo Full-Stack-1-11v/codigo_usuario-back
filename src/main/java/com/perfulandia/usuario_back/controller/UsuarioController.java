@@ -4,6 +4,9 @@ import com.perfulandia.usuario_back.model.Usuario;
 import com.perfulandia.usuario_back.model.Rol;
 import com.perfulandia.usuario_back.service.UsuarioService;
 
+import com.perfulandia.usuario_back.dto.PedidoDTO;
+import com.perfulandia.usuario_back.dto.VentaDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -18,21 +21,18 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-   
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
         List<Usuario> usuarios = usuarioService.getAllUsuarios();
         return ResponseEntity.ok(usuarios);
     }
 
-   
     @GetMapping("/desactivados")
     public ResponseEntity<List<Usuario>> listarUsuariosDesactivados() {
         List<Usuario> usuariosDesactivados = usuarioService.getUsuariosDesactivados();
         return ResponseEntity.ok(usuariosDesactivados);
     }
 
-   
     @GetMapping("/activos")
     public ResponseEntity<List<Usuario>> listarUsuariosActivos() {
         List<Usuario> usuariosActivos = usuarioService.getAllUsuarios()
@@ -42,7 +42,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuariosActivos);
     }
 
-   
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
         Usuario usuario = usuarioService.getUsuarioById(id);
@@ -52,7 +51,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
-  
     @PostMapping("/crear")
     public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario) {
         try {
@@ -63,7 +61,6 @@ public class UsuarioController {
         }
     }
 
-   
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
         Usuario actualizado = usuarioService.updateUsuario(id, usuario);
@@ -73,7 +70,6 @@ public class UsuarioController {
         return ResponseEntity.ok(actualizado);
     }
 
-    
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<Usuario> desactivarUsuario(@PathVariable Long id) {
         Usuario desactivado = usuarioService.desactivarUsuario(id);
@@ -83,7 +79,6 @@ public class UsuarioController {
         return ResponseEntity.ok(desactivado);
     }
 
-  
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         Usuario usuario = usuarioService.getUsuarioById(id);
@@ -94,7 +89,6 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
-  
     @PostMapping("/{id}/roles")
     public ResponseEntity<Usuario> asignarRol(@PathVariable Long id, @RequestBody Rol rol) {
         Usuario usuarioConRol = usuarioService.asignarRol(id, rol);
@@ -102,5 +96,17 @@ public class UsuarioController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario o Rol no encontrado");
         }
         return ResponseEntity.ok(usuarioConRol);
+    }
+
+    // 🔁 NUEVOS ENDPOINTS PARA PEDIDOS Y VENTAS
+
+    @GetMapping("/{id}/pedidos")
+    public ResponseEntity<List<PedidoDTO>> getPedidosByUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.getPedidosUsuario(id));
+    }
+
+    @GetMapping("/{id}/ventas")
+    public ResponseEntity<List<VentaDTO>> getVentasByUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.getVentasUsuario(id));
     }
 }

@@ -18,6 +18,8 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         crearRolSiNoExiste("ROLE_ADMIN");
         crearRolSiNoExiste("ROLE_USER");
+        crearRolSiNoExiste("ROLE_CLIENTE");
+        crearRolSiNoExiste("ROLE_EMPLEADO");
     }
 
     private void crearRolSiNoExiste(String nombreRol) {
