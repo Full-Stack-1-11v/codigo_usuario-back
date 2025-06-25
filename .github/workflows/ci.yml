@@ -1,0 +1,33 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, listo ]
+  pull_request:
+    branches: [ main, listo ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar repositorio
+      uses: actions/checkout@v3
+
+    - name: Configurar Java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Dar permisos a wrapper
+      run: chmod +x mvnw
+
+    - name: Compilar y correr tests
+      run: ./mvnw verify
+
+    - name: Reporte JaCoCo (opcional)
+      if: success()
+      run: |
+        echo "Tests ejecutados. Verifica cobertura con Jacoco en target/site/jacoco/index.html"
