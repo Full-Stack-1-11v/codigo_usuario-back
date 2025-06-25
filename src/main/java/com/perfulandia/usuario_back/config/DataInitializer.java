@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * Clase que se ejecuta automáticamente al iniciar la aplicación.
  * Su propósito es inicializar la base de datos con roles predeterminados
- * si estos no existen aún.
+ * si estos no existen aún
  *
  * <p>Roles creados automáticamente:</p>
  * <ul>

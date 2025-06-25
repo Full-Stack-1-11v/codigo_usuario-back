@@ -28,6 +28,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 /**
  * Controlador REST para gestionar operaciones relacionadas con los roles.
+ * Permite listar, obtener, crear, actualizar y eliminar roles del sistema.
+ * Todas las respuestas están estructuradas con HATEOAS.
  */
 @RestController
 @RequestMapping("/roles")
@@ -39,11 +41,22 @@ public class RolController {
     private final RolService rolService;
     private final RolModelAssembler rolModelAssembler;
 
+    /**
+     * Constructor con inyección de dependencias.
+     *
+     * @param rolService servicio encargado de la lógica de negocio de roles.
+     * @param rolModelAssembler ensamblador que convierte entidades Rol en modelos HATEOAS.
+     */
     public RolController(RolService rolService, RolModelAssembler rolModelAssembler) {
         this.rolService = rolService;
         this.rolModelAssembler = rolModelAssembler;
     }
 
+    /**
+     * Lista todos los roles registrados en el sistema.
+     *
+     * @return respuesta con la colección de roles en formato HATEOAS o 204 si no hay roles.
+     */
     @Operation(summary = "Listar todos los roles")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Roles listados correctamente",
@@ -70,6 +83,12 @@ public class RolController {
         return ResponseEntity.ok(collectionModel);
     }
 
+    /**
+     * Obtiene un rol específico según su ID.
+     *
+     * @param id identificador del rol.
+     * @return el rol encontrado en formato HATEOAS o 404 si no existe.
+     */
     @Operation(summary = "Obtener un rol por su ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Rol encontrado correctamente",
@@ -90,6 +109,12 @@ public class RolController {
         });
     }
 
+    /**
+     * Crea un nuevo rol en el sistema.
+     *
+     * @param rolDTO DTO con el nombre del rol a crear.
+     * @return el rol creado con enlace HATEOAS.
+     */
     @Operation(summary = "Crear un nuevo rol")
     @PostMapping
     public ResponseEntity<EntityModel<RolDTO>> crearRol(@Valid @RequestBody RolDTO rolDTO) {
@@ -100,6 +125,13 @@ public class RolController {
                 .body(rolModelAssembler.toModel(nuevoRol));
     }
 
+    /**
+     * Actualiza el nombre de un rol existente.
+     *
+     * @param id     ID del rol a actualizar.
+     * @param rolDTO DTO con el nuevo nombre del rol.
+     * @return el rol actualizado o 404 si no existe.
+     */
     @Operation(summary = "Actualizar un rol existente")
     @PutMapping("/{id}")
     public ResponseEntity<EntityModel<RolDTO>> actualizarRol(@PathVariable Long id, @Valid @RequestBody RolDTO rolDTO) {
@@ -118,6 +150,12 @@ public class RolController {
         return ResponseEntity.ok(rolModelAssembler.toModel(rolGuardado));
     }
 
+    /**
+     * Elimina un rol del sistema por su ID.
+     *
+     * @param id ID del rol a eliminar.
+     * @return 204 si fue eliminado, o 404 si no se encontró.
+     */
     @Operation(summary = "Eliminar un rol por ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarRol(@PathVariable Long id) {

@@ -1,6 +1,8 @@
 package com.perfulandia.usuario_back.controller;
 
 import com.perfulandia.usuario_back.assembler.UsuarioModelAssembler;
+
+
 import com.perfulandia.usuario_back.dto.PedidoDTO;
 import com.perfulandia.usuario_back.dto.UsuarioDTO;
 import com.perfulandia.usuario_back.model.Rol;
@@ -18,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -34,6 +38,8 @@ class UsuarioControllerTest {
 
     @Mock
     private UsuarioModelAssembler usuarioModelAssembler;
+
+
 
     private Usuario usuario;
     private UsuarioDTO usuarioDTO;

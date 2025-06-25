@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
@@ -29,6 +28,13 @@ import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
+/**
+ * Controlador REST que gestiona las operaciones CRUD y acciones adicionales
+ * relacionadas con los usuarios del sistema.
+ *
+ * <p>Todas las respuestas se devuelven en formato HATEOAS para cumplir con los
+ * principios de REST auto-descubrible.</p>
+ */
 @RestController
 @RequestMapping("/api/usuarios")
 @Tag(name = "Usuarios", description = "Operaciones relacionadas con usuarios")
@@ -36,12 +42,31 @@ public class UsuarioController {
 
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
-    @Autowired
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
+    private final UsuarioModelAssembler usuarioModelAssembler;
 
-    @Autowired
-    private UsuarioModelAssembler usuarioModelAssembler;
+    /**
+     * Constructor con inyección de dependencias.
+     *
+     * @param usuarioService       servicio de lógica de negocio de usuarios
+     * @param usuarioModelAssembler ensamblador que convierte {@link Usuario}
+     *                              en modelos HATEOAS ({@link UsuarioDTO})
+     */
+    public UsuarioController(UsuarioService usuarioService,
+                             UsuarioModelAssembler usuarioModelAssembler) {
+        this.usuarioService = usuarioService;
+        this.usuarioModelAssembler = usuarioModelAssembler;
+    }
 
+    // -------------------------------------------------------------------------
+    // LISTAR
+    // -------------------------------------------------------------------------
+
+    /**
+     * Lista todos los usuarios registrados.
+     *
+     * @return colección HATEOAS de usuarios
+     */
     @Operation(summary = "Listar todos los usuarios")
     @ApiResponse(responseCode = "200", description = "Usuarios obtenidos correctamente")
     @GetMapping("/listar")
@@ -51,10 +76,17 @@ public class UsuarioController {
                 .stream()
                 .map(usuarioModelAssembler::toModel)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(CollectionModel.of(usuarios,
+
+        return ResponseEntity.ok(CollectionModel.of(
+                usuarios,
                 linkTo(methodOn(UsuarioController.class).listarUsuarios()).withSelfRel()));
     }
 
+    /**
+     * Lista únicamente los usuarios activos.
+     *
+     * @return colección HATEOAS de usuarios activos
+     */
     @Operation(summary = "Listar usuarios activos")
     @GetMapping("/activos")
     public ResponseEntity<CollectionModel<EntityModel<UsuarioDTO>>> listarUsuariosActivos() {
@@ -64,10 +96,17 @@ public class UsuarioController {
                 .filter(Usuario::isActivo)
                 .map(usuarioModelAssembler::toModel)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(CollectionModel.of(activos,
+
+        return ResponseEntity.ok(CollectionModel.of(
+                activos,
                 linkTo(methodOn(UsuarioController.class).listarUsuariosActivos()).withSelfRel()));
     }
 
+    /**
+     * Lista los usuarios que han sido desactivados.
+     *
+     * @return colección HATEOAS de usuarios desactivados
+     */
     @Operation(summary = "Listar usuarios desactivados")
     @GetMapping("/desactivados")
     public ResponseEntity<CollectionModel<EntityModel<UsuarioDTO>>> listarUsuariosDesactivados() {
@@ -76,10 +115,23 @@ public class UsuarioController {
                 .stream()
                 .map(usuarioModelAssembler::toModel)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(CollectionModel.of(desactivados,
+
+        return ResponseEntity.ok(CollectionModel.of(
+                desactivados,
                 linkTo(methodOn(UsuarioController.class).listarUsuariosDesactivados()).withSelfRel()));
     }
 
+    // -------------------------------------------------------------------------
+    // CREAR
+    // -------------------------------------------------------------------------
+
+    /**
+     * Crea un nuevo usuario.
+     *
+     * @param usuario entidad usuario recibida en el body
+     * @return usuario creado en formato HATEOAS
+     * @throws ResponseStatusException si el usuario ya existe (409)
+     */
     @Operation(summary = "Crear un nuevo usuario")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Usuario creado correctamente"),
@@ -98,9 +150,21 @@ public class UsuarioController {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // ACTUALIZAR, DESACTIVAR, ELIMINAR
+    // -------------------------------------------------------------------------
+
+    /**
+     * Actualiza un usuario existente por ID.
+     *
+     * @param id      ID del usuario a actualizar
+     * @param usuario datos nuevos
+     * @return usuario actualizado o 404 si no existe
+     */
     @Operation(summary = "Actualizar un usuario por ID")
     @PutMapping("/actualizar/{id}")
-    public ResponseEntity<EntityModel<UsuarioDTO>> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<EntityModel<UsuarioDTO>> actualizarUsuario(@PathVariable Long id,
+                                                                     @RequestBody Usuario usuario) {
         logger.info("PUT /api/usuarios/actualizar{}", id);
         Usuario actualizado = usuarioService.updateUsuario(id, usuario);
         if (actualizado == null) {
@@ -110,6 +174,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioModelAssembler.toModel(actualizado));
     }
 
+    /**
+     * Desactiva (soft-delete) un usuario por ID.
+     *
+     * @param id ID del usuario
+     * @return usuario desactivado o 404 si no existe
+     */
     @Operation(summary = "Desactivar usuario por ID")
     @PatchMapping("/{id}/desactivar")
     public ResponseEntity<EntityModel<UsuarioDTO>> desactivarUsuario(@PathVariable Long id) {
@@ -122,6 +192,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioModelAssembler.toModel(desactivado));
     }
 
+    /**
+     * Elimina un usuario de forma permanente.
+     *
+     * @param id ID del usuario
+     * @return 204 si se eliminó, 404 si no existe
+     */
     @Operation(summary = "Eliminar usuario por ID")
     @DeleteMapping("/eliminar/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
@@ -135,6 +211,17 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    // -------------------------------------------------------------------------
+    // ROLES y PEDIDOS
+    // -------------------------------------------------------------------------
+
+    /**
+     * Asigna un rol a un usuario existente.
+     *
+     * @param id  ID del usuario
+     * @param rol rol a asignar
+     * @return usuario con el rol asignado o 404 si usuario/rol no existe
+     */
     @Operation(summary = "Asignar rol a un usuario")
     @PostMapping("/{id}/roles")
     public ResponseEntity<EntityModel<UsuarioDTO>> asignarRol(@PathVariable Long id, @RequestBody Rol rol) {
@@ -147,6 +234,12 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioModelAssembler.toModel(usuarioConRol));
     }
 
+    /**
+     * Obtiene los pedidos asociados a un usuario.
+     *
+     * @param id ID del usuario
+     * @return lista de pedidos en formato DTO
+     */
     @Operation(summary = "Listar pedidos de un usuario por ID")
     @GetMapping("/{id}/pedidos")
     public ResponseEntity<List<PedidoDTO>> getPedidosByUsuario(@PathVariable Long id) {
@@ -154,6 +247,16 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.obtenerPedidosUsuario(id));
     }
 
+    // -------------------------------------------------------------------------
+    // OBTENER POR ID
+    // -------------------------------------------------------------------------
+
+    /**
+     * Obtiene un usuario por su ID.
+     *
+     * @param id ID del usuario
+     * @return usuario encontrado en formato HATEOAS o 404 si no existe
+     */
     @Operation(summary = "Obtener un usuario por ID")
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<UsuarioDTO>> obtenerUsuarioPorId(@PathVariable Long id) {
