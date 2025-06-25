@@ -15,6 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class UsuarioServiceTest {
@@ -230,4 +234,69 @@ class UsuarioServiceTest {
 
         assertThat(resultado).hasSize(2);
     }
+
+    @Test
+    void testUpdateUsuario_NoExiste() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Usuario result = usuarioService.updateUsuario(1L, new Usuario());
+
+        assertNull(result);
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void testUpdateUsuario_SinPassword() {
+        Usuario existente = Usuario.builder()
+            .id(1L)
+            .nombre("NombreOriginal")
+            .apellido("ApellidoOriginal")
+            .rut("11.111.111-1")
+            .correo("correo@original.com")
+            .direccion("Dirección Original")
+            .password("1234")
+            .build();
+
+        Usuario actualizacion = new Usuario();
+        actualizacion.setNombre("NuevoNombre");
+        actualizacion.setRawPassword(null); // password no será modificado
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(usuarioRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Usuario resultado = usuarioService.updateUsuario(1L, actualizacion);
+
+        assertEquals("NuevoNombre", resultado.getNombre());
+        assertEquals("ApellidoOriginal", resultado.getApellido());
+        assertEquals("1234", resultado.getPassword()); // password no cambia
+    }
+
+    @Test
+    void testAsignarRol_RolNoExisteYSeCrea() {
+        Rol nuevoRol = new Rol(null, "ROLE_NUEVO");
+        Rol rolGuardado = new Rol(10L, "ROLE_NUEVO");
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setRoles(new HashSet<>());
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+        when(rolRepository.findByNombre("ROLE_NUEVO")).thenReturn(Optional.empty());
+        when(rolRepository.save(nuevoRol)).thenReturn(rolGuardado);
+        when(usuarioRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Usuario resultado = usuarioService.asignarRol(1L, nuevoRol);
+
+        assertTrue(resultado.getRoles().contains(rolGuardado));
+    }
+
+    @Test
+    void testDesactivarUsuario_NoExiste() {
+        when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Usuario result = usuarioService.desactivarUsuario(99L);
+
+        assertNull(result);
+        verify(usuarioRepository, never()).save(any());
+}
+
 }

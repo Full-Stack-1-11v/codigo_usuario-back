@@ -152,4 +152,13 @@ class RolControllerTest {
         mockMvc.perform(delete("/roles/99"))
                .andExpect(status().isNotFound());
     }
+
+    @Test
+    void testListar_SinRoles() throws Exception {
+        when(rolService.obtenerTodos()).thenReturn(List.of());
+
+        mockMvc.perform(get("/roles"))
+                .andExpect(status().isNoContent());
+    }
+
 }
